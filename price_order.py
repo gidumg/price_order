@@ -283,9 +283,7 @@ def task2() :
     # 엑셀 파일 읽어오기       
     file_path = filedialog.askopenfilename(title="가격지도 파일", defaultextension=".xlsx")       
     df_input = pd.read_excel(file_path, header =0)       
-                            
-                
-    base_url = 'https://search.shopping.naver.com/search/all?query='       
+                                
                 
     options = Options()       
     options = webdriver.ChromeOptions()       
@@ -299,12 +297,13 @@ def task2() :
         # 검색할 키워드를 주문번호로 대체하여 url 생성       
         keyword = str(df_input.loc[i, '주문번호'])       
         minimum_price = int(df_input.loc[i, '최소값'])       
-        maximum_price = int(df_input.loc[i, '최대값'])       
+        maximum_price = int(df_input.loc[i, '최대값']) 
+        filter = str(df_input.loc[i, '필터'])       
                     
         #시트에서 지도가 추출하기       
         comsmart_standard = int(df_input.loc[i, '지도가'])       
                     
-        url = base_url + keyword       
+        url = f'https://search.shopping.naver.com/search/all?origQuery={keyword}&pagingIndex=1&pagingSize=80&productSet=total&query={keyword}&sort=rel&timestamp=&viewType=list'      
                     
         driver.get(url)       
         time.sleep(2)       
@@ -377,19 +376,25 @@ def task2() :
                 gap_list.append(gap)
                 comment_text = "안녕하세요. 컴스마트 관리부입니다. 현재 업로드 하신 제품의 당사 지도가는 " + str(comsmart_standard) + "원으로 현재 업로드하신 금액과는 당사 지도가 대비" + str(gap) + "원 차이가 있으니 판매 단가 수정을 부탁드립니다." 
                 comment.append(comment_text)  
+
+
         df = pd.DataFrame({  
             "모델명" : [keyword]*len(des_list),               
             "상세정보": des_list,                
-            "업체등록가": prc_list, 
-            "지도가" : [comsmart_standard]*len(des_list),             
+            "지도가" : [comsmart_standard]*len(des_list),   
+            "업체등록가": prc_list,           
             "가격차이": gap_list,  
             "판매처" : seller_list,  
             "플랫폼" : [flatform]*len(des_list),
             "링크주소": link_list,
             "안내문구" : comment,   
-            })     
+            })
+
+        if filter :
+            df = df[~df['상세정보'].str.contains(filter)]     
         
         dfs.append(df.copy())
+
     df_total = pd.concat(dfs, ignore_index=True)
     df_total = df_total[ df_total['판매처'] != '쇼핑몰별 최저가' ]
     ddf_total = df_total[df_total['가격차이'] >= 1].reset_index(drop=True)
@@ -583,6 +588,8 @@ def main() :
         print(" 　| 丿 ＼ ⌒)")
         print("  | |　　) /")
         print("  `ノ )    L/")
+        print("2023_06_11 업데이트")
+        print("80페이지 검색으로 확장 / 필터 선별 기능 생성")
        
 
         # 사용자 선택 입력 받기      

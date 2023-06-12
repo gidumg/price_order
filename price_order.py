@@ -21,106 +21,74 @@ import datetime
 from selenium.webdriver.chrome.service import Service    
 from selenium.common.exceptions import UnexpectedAlertPresentException  
 
-
 def naver(soup) :      
     try :      
-        seller = soup.find("span", attrs={"class": "KasFrJs3SA"}).get_text()      
-        uploaded_price = soup.find("span", attrs={'class' :'_1LY7DqCnwR' }).get_text()      
-        platform = "스마트스토어"       
+        seller = soup.find("span", attrs={"class": "KasFrJs3SA"}).get_text()          
     except AttributeError :     
-        seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "스마트스토어"         
-    return seller, uploaded_price, platform     
+        seller = "확인필요"             
+    return seller
+    
 def coupang(soup) :     
     try :      
-        seller = soup.find("a", attrs={"class": "prod-sale-vendor-name"}).get_text()      
-        uploaded_price = soup.find("span", attrs={'class' :'total-price' }).get_text()      
-        platform = "쿠팡"            
+        seller = soup.find("a", attrs={"class": "prod-sale-vendor-name"}).get_text()           
     except AttributeError :     
-        seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "쿠팡"     
-    return seller, uploaded_price, platform       
+        seller = "확인필요"      
+    return seller   
        
-def interpark(soup):           
-    time.sleep(5)     
+def interpark(soup):              
     try:     
-        seller = soup.find("div", attrs={"class": "sellerName"}).get_text()     
-        uploaded_price = soup.find("span", attrs={'class': 'priceWrap'}).get_text()     
-        platform = "인터파크"     
+        seller = soup.find("div", attrs={"class": "sellerName"}).get_text()        
     except AttributeError:     
         seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "인터파크"     
-    return seller, uploaded_price, platform     
+    return seller
+  
 def auction(soup) :     
     try :     
         seller = soup.find("a", attrs={"class": "link__seller sp_vipgroup--before sp_vipgroup--after"}).get_text()       
-        uploaded_price = soup.find("strong", attrs={"class" :"price_real" }).get_text()      
-        platform = "옥션/G마켓"      
     except AttributeError :     
         seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "옥션/G마켓"     
-    return seller, uploaded_price, platform    
+    return seller  
       
 def gmarket(soup) :     
     try:     
-        seller = soup.find("a", attrs={"class": "link__seller sp_vipgroup--before sp_vipgroup--after"}).get_text()     
-        uploaded_price = soup.find("strong", attrs={'class': 'price_real'}).get_text()     
-        platform = "G마켓/옥션"     
+        seller = soup.find("a", attrs={"class": "link__seller sp_vipgroup--before sp_vipgroup--after"}).get_text()       
     except AttributeError:     
-        seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "G마켓/옥션"     
-    return seller, uploaded_price, platform     
+        seller = "확인필요"      
+    return seller
+ 
 def ssg(soup):     
     try:     
         seller = soup.find("a", attrs={"class": "cdtl_info_tit_link"}).get_text()     
-        uploaded_price = soup.find("em", attrs={'class': 'ssg_price'}).get_text()     
-        platform = "SSG"     
     except AttributeError:     
         seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "SSG닷컴"     
-    return seller, uploaded_price, platform     
+    return seller   
+
 def elevenst(soup):     
     try:     
         seller = soup.find("h1", attrs={"class": "c_product_store_title"}).find('a').get_text().strip()     
-        uploaded_price = soup.find("span", attrs={'class': 'num value'}).get_text()     
-        platform = "11번가"     
     except AttributeError:     
         seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "11번가"     
-    return seller, uploaded_price, platform    
+    return seller  
       
 def wemakeprice(soup):     
     try:     
         seller = soup.find("span", attrs={"class": "store_name"}).get_text()     
-        uploaded_price = soup.find("em", attrs={'class': 'num'}).get_text()     
-        platform = "위메프"     
     except AttributeError:     
         seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "위메프"     
-    return seller, uploaded_price, platform     
+    return seller  
+
 def lotte(soup):     
     try:     
-        seller = soup.find("div", attrs={"class": "top"}).get_text()     
-        uploaded_price = soup.find("span", attrs={'class': 'won'}).get_text().strip()     
-        platform = "롯데ON"     
+        seller = soup.find("div", attrs={"class": "top"}).get_text()   
     except AttributeError:     
-        seller = "확인필요"     
-        uploaded_price = "확인필요"     
-        platform = "롯데ON"     
-    return seller, uploaded_price, platform     
+        seller = "확인필요"        
+    return seller  
+
 def unknown(soup):     
     seller = "*확인필요*"     
-    uploaded_price = ""     
-    platform = ""     
-    return seller, uploaded_price, platform     
+    return seller 
+
+
 def task1() :     
     base_url = 'https://search.shopping.naver.com/search/all?query='  
     keyword = input("모델명을 입력해주세요 : ")       
@@ -275,15 +243,13 @@ def task1() :
       
       
       
-def task2() :     
-    
-    
+def task2() :    
+
     dfs = []
                 
     # 엑셀 파일 읽어오기       
     file_path = filedialog.askopenfilename(title="가격지도 파일", defaultextension=".xlsx")       
-    df_input = pd.read_excel(file_path, header =0)       
-                                
+    df_input = pd.read_excel(file_path, header =0)             
                 
     options = Options()       
     options = webdriver.ChromeOptions()       
@@ -291,19 +257,17 @@ def task2() :
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})       
             
             
-            
-                
     for i in tqdm(range(len(df_input))):       
         # 검색할 키워드를 주문번호로 대체하여 url 생성       
         keyword = str(df_input.loc[i, '주문번호'])       
         minimum_price = int(df_input.loc[i, '최소값'])       
-        maximum_price = int(df_input.loc[i, '최대값']) 
-        filter = str(df_input.loc[i, '필터'])       
+        maximum_price = int(df_input.loc[i, '최대값'])   
+        filter = str(df_input.loc[i, '필터'])    
                     
         #시트에서 지도가 추출하기       
         comsmart_standard = int(df_input.loc[i, '지도가'])       
                     
-        url = f'https://search.shopping.naver.com/search/all?origQuery={keyword}&pagingIndex=1&pagingSize=80&productSet=total&query={keyword}&sort=rel&timestamp=&viewType=list'      
+        url = f'https://search.shopping.naver.com/search/all?origQuery={keyword}&pagingIndex=1&pagingSize=80&productSet=total&query={keyword}&sort=rel&timestamp=&viewType=list'     
                     
         driver.get(url)       
         time.sleep(2)       
@@ -321,7 +285,7 @@ def task2() :
             next_link.click()       
                         
         time.sleep(3)       
-                      
+                        
                 
         min_price = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@title='최소가격 입력']")))     
         min_price.clear()     
@@ -339,12 +303,13 @@ def task2() :
         search_button.click()     
             
         time.sleep(1)     
-                   
+                    
         for c in range(0, 20):       
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight/20*" + str(c+1) + ");")       
                 time.sleep(0.1)       
                         
-        time.sleep(3)       
+        time.sleep(3)    
+
         des_list = []
         link_list = []
         seller_list = []
@@ -368,6 +333,16 @@ def task2() :
             for seller in item.select_one("div.product_mall_title__Xer1m > a"):
                 seller_text = seller.get_text()
                 seller_list.append(seller_text)
+
+        for item in image_list:
+            platform = item.select_one("div.product_mall_title__Xer1m > a")
+            if platform.img :
+                platform_name = platform.img['alt']
+            else :
+                platform_name = "네이버"
+                
+            platform_list.append(platform_name)
+
         for item in image_list:        
             for price in item.select("span.price_num__S2p_v"):
                 prc = int(price.get_text().replace("원", "").replace(",", ""))
@@ -377,26 +352,27 @@ def task2() :
                 comment_text = "안녕하세요. 컴스마트 관리부입니다. 현재 업로드 하신 제품의 당사 지도가는 " + str(comsmart_standard) + "원으로 현재 업로드하신 금액과는 당사 지도가 대비" + str(gap) + "원 차이가 있으니 판매 단가 수정을 부탁드립니다." 
                 comment.append(comment_text)  
 
-
         df = pd.DataFrame({  
             "모델명" : [keyword]*len(des_list),               
-            "상세정보": des_list,                
-            "지도가" : [comsmart_standard]*len(des_list),   
-            "업체등록가": prc_list,           
+            "상세정보": des_list,        
+            "지도가" : [comsmart_standard]*len(des_list),          
+            "업체등록가": prc_list,      
             "가격차이": gap_list,  
             "판매처" : seller_list,  
-            "플랫폼" : [flatform]*len(des_list),
+            "플랫폼" : platform_list,
             "링크주소": link_list,
             "안내문구" : comment,   
-            })
-
+            })     
+        
         if filter :
-            df = df[~df['상세정보'].str.contains(filter)]     
+            df = df[~df['상세정보'].str.contains(filter)]
         
         dfs.append(df.copy())
-
     df_total = pd.concat(dfs, ignore_index=True)
     df_total = df_total[ df_total['판매처'] != '쇼핑몰별 최저가' ]
+    df_total = df_total[ df_total['플랫폼'] != '유닛808' ]
+    df_total = df_total[ df_total['플랫폼'] != 'aliexpress' ]
+    df_total = df_total[ df_total['플랫폼'] != '교보핫트랙스' ]
     ddf_total = df_total[df_total['가격차이'] >= 1].reset_index(drop=True)
     try : 
         for i, row in ddf_total.iterrows():
@@ -407,51 +383,52 @@ def task2() :
                 soup = BeautifulSoup(html, 'lxml')                                                           
                         
                 if "coupang" in html :       
-                    seller, uploaded_price, platform = coupang(soup)     
+                    seller = coupang(soup)     
                         
                         
                 elif '인터파크쇼핑' in html :                                 
-                    seller, uploaded_price, platform = interpark(soup)     
+                    seller = interpark(soup)     
                         
                         
                 elif "G마켓" in html :       
-                    seller, uploaded_price, platform = gmarket(soup)     
+                    seller = gmarket(soup)     
                         
                         
                 elif "옥션" in html :    
-                    seller, uploaded_price, platform = auction(soup)     
+                    seller = auction(soup)     
                         
                         
                 elif "ssg.com" in html :    
-                    seller, uploaded_price, platform = ssg(soup)     
+                    seller = ssg(soup)     
                         
                 elif "11번가" in html :        
-                    seller, uploaded_price, platform = elevenst(soup)     
+                    seller = elevenst(soup)     
                         
                         
                 elif "위메프" in html :        
-                    seller, uploaded_price, platform = wemakeprice(soup)     
+                    seller = wemakeprice(soup)     
                         
                 elif "lotte" in html :       
-                    seller, uploaded_price, platform = lotte(soup)                          
+                    seller = lotte(soup)                          
                         
                 else :       
-                    seller, uploaded_price, platform = unknown(soup)  
+                    seller = unknown(soup)  
         
-                ddf_total.loc[i,'판매처'] = seller
-                ddf_total.loc[i,'플랫폼'] = platform   
+                ddf_total.loc[i,'판매처'] = seller 
                 
                 
     except AttributeError:       
-         pass       
-       
+            pass       
+        
     except TypeError:       
         pass       
-           
+            
     except TimeoutException :       
         pass       
+
     except UnexpectedAlertPresentException: 
         pass 
+
             
     # '가격지도' 폴더 경로 생성
     dir_path = os.path.join('C:\\', '가격지도')
@@ -590,6 +567,7 @@ def main() :
         print("  `ノ )    L/")
         print("2023_06_11 업데이트")
         print("80페이지 검색으로 확장 / 필터 선별 기능 생성")
+        print("Aliexpress / unit808 / 교보핫트랙스 자동으로 거름")
        
 
         # 사용자 선택 입력 받기      

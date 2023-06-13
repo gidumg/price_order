@@ -363,9 +363,11 @@ def task2() :
             "링크주소": link_list,
             "안내문구" : comment,   
             })     
-        
-        if filter :
-            df = df[~df['상세정보'].str.contains(filter)]
+        try :
+            if filter :
+                df = df[~df['상세정보'].str.contains(filter)]
+        except AttributeError :
+            pass
         
         dfs.append(df.copy())
     df_total = pd.concat(dfs, ignore_index=True)

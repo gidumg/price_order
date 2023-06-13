@@ -263,6 +263,7 @@ def task2() :
         minimum_price = int(df_input.loc[i, '최소값'])       
         maximum_price = int(df_input.loc[i, '최대값'])   
         filter = str(df_input.loc[i, '필터'])    
+        filter2 = str(df_input.loc[i, '필터2'])    
                     
         #시트에서 지도가 추출하기       
         comsmart_standard = int(df_input.loc[i, '지도가'])       
@@ -368,6 +369,12 @@ def task2() :
                 df = df[~df['상세정보'].str.contains(filter)]
         except AttributeError :
             pass
+
+        try :
+            if filter2 :
+                df = df[~df['상세정보'].str.contains(filter2)]
+        except AttributeError :
+            pass
         
         dfs.append(df.copy())
     df_total = pd.concat(dfs, ignore_index=True)
@@ -375,6 +382,7 @@ def task2() :
     df_total = df_total[ df_total['플랫폼'] != '유닛808' ]
     df_total = df_total[ df_total['플랫폼'] != 'aliexpress' ]
     df_total = df_total[ df_total['플랫폼'] != '교보핫트랙스' ]
+    df_total = df_total[ df_total['플랫폼'] != '프리쉽' ]
     ddf_total = df_total[df_total['가격차이'] >= 1].reset_index(drop=True)
     try : 
         for i, row in ddf_total.iterrows():

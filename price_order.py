@@ -79,7 +79,7 @@ def wemakeprice(soup):
 
 def lotte(soup):     
     try:     
-        seller = soup.find("div", attrs={"class": "top"}).get_text()   
+        seller = soup.find("div", attrs={"class": "top"}).get_text().strip()[-6:] 
     except AttributeError:     
         seller = "확인필요"        
     return seller  
@@ -87,161 +87,9 @@ def lotte(soup):
 def unknown(soup):     
     seller = "*확인필요*"     
     return seller 
-
-
-def task1() :     
-    base_url = 'https://search.shopping.naver.com/search/all?query='  
-    keyword = input("모델명을 입력해주세요 : ")       
-    comsmart_standard = int(input("지도가를 입력해주세요 : "))       
-    minimum_price = int(input("최소가격을 입력해주세요 :"))     
-    maximum_price = int(input("최대가격을 입력해주세요 :")) 
-    options = Options()       
-    options = webdriver.ChromeOptions()       
-    driver = webdriver.Chrome('./mnt/c/chromedriver.exe', options=options)       
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})     
-    url = base_url + keyword       
-                   
-               
-    driver.get(url)       
-    time.sleep(2)       
-                
-    search_btns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[data-testid='SEARCH_SUB_FILTER_ORDER_LIST']")))       
-            
-    # Find the "낮은 가격순" button and click it       
-    for btn in search_btns:       
-        if btn.text.strip() == "낮은 가격순":       
-            btn.click()       
-            break       
-                
-    # 최적화 필터 제거하기       
-    next_link = WebDriverWait(driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'a.subFilter_btn_radio__13PEL')))       
-    next_link.click()       
-            
-    time.sleep(1)       
-                
-            
-    min_price = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@title='최소가격 입력']")))     
-    min_price.clear()     
-    min_price.send_keys(minimum_price)     
-            
-    time.sleep(1)     
-            
-            
-    st_date = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@title='최대가격 입력']")))      
-    st_date.clear()      
-    st_date.send_keys(maximum_price)      
-            
-    time.sleep(1)     
-            
-    # 가격대 검색 버튼 요소를 찾습니다.     
-    search_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[@class='filter_price_srh__D6arg' and @role='button']")))      
-    search_button.click()        
-    time.sleep(1)         
-            
-            
-    # 스크롤 다운       
-    for c in range(0, 20):       
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight/20*" + str(c+1) + ");")       
-        time.sleep(0.1)       
-                    
-    time.sleep(3)       
-    html = driver.page_source       
-    soup = BeautifulSoup(html, 'html.parser')        
-    des_list = []
-    link_list = []
-    seller_list = []
-    prc_list = []
-    gap_list = []
-    comment = []
-    platform_list = []
-    image_list = soup.select("div.product_item__MDtDF")        
-            
-    for item in image_list:
-        for des in item.select("a.product_link__TrAac.linkAnchor"):
-            des_text = des['title']
-            des_list.append(des_text)
-            link_text = des['href']
-            link_list.append(link_text)
-    for item in image_list:
-        for seller in item.select_one("div.product_mall_title__Xer1m > a"):
-            seller_text = seller.get_text()
-            seller_list.append(seller_text)
-    for item in image_list:        
-        for price in item.select("span.price_num__S2p_v"):
-            prc = int(price.get_text().replace("원", "").replace(",", ""))
-            prc_list.append(prc)
-            gap = comsmart_standard - prc
-            gap_list.append(gap)
-            comment_text = "안녕하세요. 컴스마트 관리부입니다. 현재 업로드 하신 제품의 당사 지도가는 " + str(comsmart_standard) + "원으로 현재 업로드하신 금액과는 당사 지도가 대비" + str(gap) + "원 차이가 있으니 판매 단가 수정을 부탁드립니다." 
-            comment.append(comment_text)  
-    flatform = ""
-    df = pd.DataFrame({  
-        "모델명" : [keyword]*len(des_list),               
-        "상세정보": des_list,                
-        "업체등록가": prc_list, 
-        "지도가" : [comsmart_standard]*len(des_list),             
-        "가격차이": gap_list,  
-        "판매처" : seller_list,  
-        "플랫폼" : [flatform]*len(des_list),
-        "링크주소": link_list,
-        "안내문구" : comment,   
-        })     
-    df = df[ df['가격차이'] >= 1]
-    for i in range(len(df)): 
-        if df.loc[i, '판매처'] == "":
-            driver.get(df.loc[i, '링크주소'])
-            time.sleep(8)       
-            html = driver.page_source       
-            soup = BeautifulSoup(html, 'lxml')                                                          
-                    
-            if "coupang" in html :       
-                seller, uploaded_price, platform = coupang(soup)     
-                    
-                    
-            elif '인터파크쇼핑' in html :                                      
-                seller, uploaded_price, platform = interpark(soup)     
-                    
-                    
-            elif "G마켓" in html :       
-                seller, uploaded_price, platform = gmarket(soup)     
-                    
-                    
-            elif "옥션" in html :       
-                seller, uploaded_price, platform = auction(soup)     
-                    
-                    
-            elif "ssg.com" in html :       
-                seller, uploaded_price, platform = ssg(soup)     
-                    
-            elif "11번가" in html :        
-                seller, uploaded_price, platform = elevenst(soup)     
-                    
-                    
-            elif "위메프" in html :        
-                seller, uploaded_price, platform = wemakeprice(soup)     
-                    
-            elif "lotte" in html :       
-                seller, uploaded_price, platform = lotte(soup)                          
-                    
-            else :       
-                seller, uploaded_price, platform = unknown(soup)  
-            df.loc[i,'판매처'] = seller
-            df.loc[i,'플랫폼'] = platform
-    # '가격지도' 폴더 경로 생성
-    dir_path = os.path.join('C:\\', '가격지도')
-    # '가격지도' 폴더가 없으면 생성
-    if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
-    # 현재 시간으로 파일명 생성
-    now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f'가긱지도_{now}.xlsx'
-    # 파일 경로 생성
-    file_path = os.path.join(dir_path, filename)
-    # 파일 저장
-    df.to_excel(file_path, index=False)
-    print("1번 작업이 완료되었습니다.")
-      
-      
+   
+def task1() :
+    print("1번 기능은 없어졌습니다")      
       
 def task2() :    
 
@@ -264,6 +112,7 @@ def task2() :
         maximum_price = int(df_input.loc[i, '최대값'])   
         filter = str(df_input.loc[i, '필터'])    
         filter2 = str(df_input.loc[i, '필터2'])    
+        filter3 = str(df_input.loc[i, '필터3']) 
                     
         #시트에서 지도가 추출하기       
         comsmart_standard = int(df_input.loc[i, '지도가'])       
@@ -326,32 +175,35 @@ def task2() :
                 
         for item in image_list:
             for des in item.select("a.product_link__TrAac.linkAnchor"):
-                des_text = des['title']
+                if 'title' not in des.attrs:  # title 속성이 없을 경우
+                    continue  # 현재 반복을 건너뛰고 다음 요소로 넘어갑니다.
+                
+                des_text = des['title']  
                 des_list.append(des_text)
+
                 link_text = des['href']
                 link_list.append(link_text)
-        for item in image_list:
-            for seller in item.select_one("div.product_mall_title__Xer1m > a"):
-                seller_text = seller.get_text()
+
+                seller = item.select_one("div.product_mall_title__Xer1m > a")
+                seller_text = seller.get_text() if seller else None
                 seller_list.append(seller_text)
 
-        for item in image_list:
-            platform = item.select_one("div.product_mall_title__Xer1m > a")
-            if platform.img :
-                platform_name = platform.img['alt']
-            else :
-                platform_name = "네이버"
-                
-            platform_list.append(platform_name)
+                platform = item.select_one("div.product_mall_title__Xer1m > a")
+                platform_name = platform.img['alt'] if platform and platform.img else "네이버"
+                platform_list.append(platform_name)
 
-        for item in image_list:        
-            for price in item.select("span.price_num__S2p_v"):
-                prc = int(price.get_text().replace("원", "").replace(",", ""))
-                prc_list.append(prc)
-                gap = comsmart_standard - prc
-                gap_list.append(gap)
-                comment_text = "안녕하세요. 컴스마트 관리부입니다. 현재 업로드 하신 제품의 당사 지도가는 " + str(comsmart_standard) + "원으로 현재 업로드하신 금액과는 당사 지도가 대비" + str(gap) + "원 차이가 있으니 판매 단가 수정을 부탁드립니다." 
-                comment.append(comment_text)  
+                price = item.select_one("span.price_num__S2p_v")
+                if price:
+                    prc = int(price.get_text().replace("원", "").replace(",", ""))
+                    prc_list.append(prc)
+                    gap = comsmart_standard - prc
+                    gap_list.append(gap)
+                    comment_text = "안녕하세요. 컴스마트 관리부입니다. 현재 업로드 하신 제품의 당사 지도가는 " + str(comsmart_standard) + "원으로 현재 업로드하신 금액과는 당사 지도가 대비" + str(gap) + "원 차이가 있으니 판매 단가 수정을 부탁드립니다." 
+                    comment.append(comment_text)  
+                else:
+                    prc_list.append(None)
+                    gap_list.append(None)
+                    comment.append(None) 
 
         df = pd.DataFrame({  
             "모델명" : [keyword]*len(des_list),               
@@ -373,6 +225,12 @@ def task2() :
         try :
             if filter2 :
                 df = df[~df['상세정보'].str.contains(filter2)]
+        except AttributeError :
+            pass
+
+        try :
+            if filter3 :
+                df = df[~df['상세정보'].str.contains(filter3)]
         except AttributeError :
             pass
         
@@ -428,7 +286,7 @@ def task2() :
                 
                 
     except AttributeError:       
-            pass       
+        pass       
         
     except TypeError:       
         pass       
@@ -568,10 +426,8 @@ def main() :
         print("            ﾉ>ノ ")
         print("      三   レﾚ")
 
-        print("2023_06_11 업데이트")
-        print("80페이지 검색으로 확장 / 필터 선별 기능 생성")
-        print("Aliexpress / unit808 / 교보핫트랙스 자동으로 거름")
-        print("필터 지정시 오류 발생 에러 수정")
+        print("2023_06_30")
+        print("필터3 추가 / 롯데ON 뒤에 6자리 문자열 끌어오기 / title keyerror 수정")
        
 
         # 사용자 선택 입력 받기      

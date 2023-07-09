@@ -1,7 +1,5 @@
-
 import pandas as pd       
-import openpyxl       
-from selenium import webdriver       
+import openpyxl           
 from selenium.webdriver.common.keys import Keys       
 from selenium.webdriver import ActionChains       
 from bs4 import BeautifulSoup       
@@ -9,17 +7,16 @@ from tkinter import filedialog, Tk
 import time       
 from selenium.webdriver.support.ui import WebDriverWait       
 from selenium.webdriver.support import expected_conditions as EC       
-from selenium.webdriver.common.by import By  
-from selenium import webdriver       
+from selenium.webdriver.common.by import By      
 import os       
 from tqdm import tqdm       
 from selenium.common.exceptions import TimeoutException       
 from selenium.webdriver.chrome.options import Options       
-import matplotlib.font_manager as fm  
-import matplotlib.pyplot as plt  
 import datetime       
 from selenium.webdriver.chrome.service import Service    
 from selenium.common.exceptions import UnexpectedAlertPresentException  
+from selenium import webdriver   
+from webdriver_manager.chrome import ChromeDriverManager
 
 def naver(soup) :      
     try :      
@@ -97,12 +94,13 @@ def task2() :
                 
     # 엑셀 파일 읽어오기       
     file_path = filedialog.askopenfilename(title="가격지도 파일", defaultextension=".xlsx")       
-    df_input = pd.read_excel(file_path, header =0)             
-                
-    options = Options()       
-    options = webdriver.ChromeOptions()       
-    driver = webdriver.Chrome('./mnt/c/chromedriver.exe', options=options)       
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})       
+    df_input = pd.read_excel(file_path, header =0)    
+
+    options = webdriver.ChromeOptions()              
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)   
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})
+    
             
             
     for i in tqdm(range(len(df_input))):       
@@ -116,44 +114,10 @@ def task2() :
                     
         #시트에서 지도가 추출하기       
         comsmart_standard = int(df_input.loc[i, '지도가'])       
-                    
-        url = f'https://search.shopping.naver.com/search/all?origQuery={keyword}&pagingIndex=1&pagingSize=80&productSet=total&query={keyword}&sort=rel&timestamp=&viewType=list'     
-                    
-        driver.get(url)       
-        time.sleep(2)       
-                    
-        search_btns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a[data-testid='SEARCH_SUB_FILTER_ORDER_LIST']")))       
-                    
-        for btn in search_btns:       
-            if btn.text.strip() == "낮은 가격순":       
-                btn.click()       
-                break       
-                    
-        #최적화 필터 제거하기           
-        next_link = WebDriverWait(driver, 50).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'a.subFilter_btn_radio__13PEL')))       
-        if 'on' in next_link.get_attribute('class'):       
-            next_link.click()       
-                        
-        time.sleep(3)       
-                        
-                
-        min_price = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@title='최소가격 입력']")))     
-        min_price.clear()     
-        min_price.send_keys(minimum_price)     
-            
-        time.sleep(1)     
-            
-        st_date = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[@title='최대가격 입력']")))     
-        st_date.clear()      
-        st_date.send_keys(maximum_price)      
-            
-        time.sleep(1)     
-            
-        search_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[@class='filter_price_srh__D6arg' and @role='button']")))        
-        search_button.click()     
-            
-        time.sleep(1)     
-                    
+
+        url = f'https://search.shopping.naver.com/search/all?frm=NVSHPRC&maxPrice={maximum_price}&minPrice={minimum_price}&origQuery={keyword}&pagingIndex=1&pagingSize=80&productSet=total&query={keyword}&sort=price_asc&sps=N&timestamp=&viewType=list'
+        driver.get(url)                 
+
         for c in range(0, 20):       
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight/20*" + str(c+1) + ");")       
                 time.sleep(0.1)       
@@ -246,7 +210,7 @@ def task2() :
         for i, row in ddf_total.iterrows():
             if row['판매처'] == "":
                 driver.get(row['링크주소'])
-                time.sleep(5)       
+                time.sleep(8)       
                 html = driver.page_source       
                 soup = BeautifulSoup(html, 'lxml')                                                           
                         
@@ -315,98 +279,7 @@ def task2() :
       
 def task3():     
          
-    링크 = []     
-    표시단가 = []     
-         
-    # 엑셀 파일 읽어오기       
-    file_path = filedialog.askopenfilename(title="가격지도 파일", defaultextension=".xlsx")       
-    df_input = pd.read_excel(file_path, header =0)      
-         
-    df_input.head()     
-         
-    options = Options()       
-    options = webdriver.ChromeOptions()       
-    driver = webdriver.Chrome('./mnt/c/chromedriver.exe', options=options)       
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})       
-         
-         
-         
-    for i in tqdm(range(len(df_input))):    
-        try :    
-            url = str(df_input.loc[i, '링크주소'])       
-            driver.get(url)     
-            time.sleep(8)     
-            html = driver.page_source       
-            soup = BeautifulSoup(html, 'lxml')       
-            time.sleep(1)     
-                 
-            if "NAVER" in html :       
-                seller, uploaded_price, platform = naver(soup)     
-                 
-                 
-            elif "coupang" in html :       
-                seller, uploaded_price, platform = coupang(soup)     
-                 
-                 
-            elif '인터파크쇼핑' in html :                                      
-                seller, uploaded_price, platform = interpark(soup)     
-                 
-                 
-            elif "G마켓" in html :       
-                seller, uploaded_price, platform = gmarket(soup)     
-                 
-                 
-            elif "옥션" in html :       
-                seller, uploaded_price, platform = auction(soup)     
-                 
-                 
-            elif "ssg.com" in html :       
-                seller, uploaded_price, platform = ssg(soup)     
-                 
-            elif "11번가" in html :        
-                seller, uploaded_price, platform = elevenst(soup)     
-                 
-                 
-            elif "위메프" in html :        
-                seller, uploaded_price, platform = wemakeprice(soup)     
-                 
-            elif "lotte" in html :       
-                seller, uploaded_price, platform = lotte(soup)                          
-                 
-            else :       
-                seller, uploaded_price, platform = unknown(soup)     
-                     
-            링크.append(url)     
-            표시단가.append(uploaded_price)     
-        except UnexpectedAlertPresentException: 
-            pass      
-             
-    df = pd.DataFrame({       
-        "링크": 링크,     
-        "표시단가" : 표시단가})     
-         
-         
-    df_input['등록단가'] = df_input['링크주소'].map(df.set_index('링크')['표시단가'])     
-    # '가격지도' 폴더 경로 생성        
-    dir_path = os.path.join('C:\\', '가격지도')        
-            
-    # '가격지도' 폴더가 없으면 생성        
-    if not os.path.exists(dir_path):        
-        os.mkdir(dir_path)        
-            
-    # 현재 시간으로 파일명 생성        
-    now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")        
-    filename = f'가격지도_단가확인{now}.xlsx'        
-            
-    # 파일 경로 생성        
-    file_path2 = os.path.join(dir_path, filename)        
-            
-    # 파일 저장        
-    df_input.to_excel(file_path2, index=False)      
-         
-    driver.close     
-                
-    print("3번 작업이 완료되었습니다.")       
+    print("3번 기능은 삭제되었습니다.")
         
         
              
@@ -426,8 +299,8 @@ def main() :
         print("            ﾉ>ノ ")
         print("      三   レﾚ")
 
-        print("2023_06_30")
-        print("필터3 추가 / 롯데ON 뒤에 6자리 문자열 끌어오기 / title keyerror 수정")
+        print("2023_07_09")
+        print("주말에 강제노동해야되는 프로그램!!!!!")
        
 
         # 사용자 선택 입력 받기      

@@ -17,6 +17,8 @@ from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import UnexpectedAlertPresentException  
 from selenium import webdriver   
 from webdriver_manager.chrome import ChromeDriverManager
+from sqlalchemy import create_engine
+from urllib.parse import quote_plus
 
 def naver(soup) :      
     try :      
@@ -300,7 +302,7 @@ def main() :
         print("      三   レﾚ")
 
         print("2023_07_09")
-        print("주말에 강제노동해야되는 프로그램!!!!!")
+        print("주말에 시간내서 수정한 프로그램")
        
 
         # 사용자 선택 입력 받기      

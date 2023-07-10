@@ -98,6 +98,14 @@ def task2() :
     file_path = filedialog.askopenfilename(title="가격지도 파일", defaultextension=".xlsx")       
     df_input = pd.read_excel(file_path, header =0)    
 
+    from sqlalchemy import create_engine
+    from urllib.parse import quote_plus
+    password = quote_plus('!!@Ll752515')
+
+    engine = create_engine(f'mysql+pymysql://fred:{password}@fred1234.synology.me/fred')
+    df_input.to_sql(name='price_order', con=engine, index=False, if_exists = 'replace')
+    engine.dispose()
+
     options = webdriver.ChromeOptions()              
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)   

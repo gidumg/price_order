@@ -107,8 +107,7 @@ def task2() :
     engine.dispose()
 
     options = webdriver.ChromeOptions()              
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)   
+    driver = webdriver.Chrome(options=options)   
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})
     
             

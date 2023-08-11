@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 import os       
 from tqdm import tqdm       
 from selenium.common.exceptions import TimeoutException       
-from selenium.webdriver.chrome.options import Options       
+from selenium.webdriver.chrome.options import Options     
 import datetime       
 from selenium.webdriver.chrome.service import Service    
 from selenium.common.exceptions import UnexpectedAlertPresentException  
@@ -106,9 +106,14 @@ def task2() :
     df_input.to_sql(name='price_order', con=engine, index=False, if_exists = 'replace')
     engine.dispose()
 
-    options = webdriver.ChromeOptions()              
-    driver = webdriver.Chrome(options=options)   
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})
+    from selenium import webdriver
+    from webdriver_manager.chrome import ChromeDriverManager
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
+    options.add_argument('--disable-dev-shm-usage')
+
+    driver = webdriver.Chrome(executable_path=ChromeDriverManager(version="114.0.5735.90").install(), options=options)
     
             
             
@@ -219,7 +224,7 @@ def task2() :
         for i, row in ddf_total.iterrows():
             if row['판매처'] == "":
                 driver.get(row['링크주소'])
-                time.sleep(8)       
+                time.sleep(10)       
                 html = driver.page_source       
                 soup = BeautifulSoup(html, 'lxml')                                                           
                         
@@ -284,6 +289,17 @@ def task2() :
     # 파일 저장
     ddf_total.to_excel(file_path, index=False)
     print("작업이 완료되었습니다.")
+
+    now2 = datetime.datetime.now().strftime("%Y%m%d")
+    ddf_total['날짜'] = now2
+
+    from sqlalchemy import create_engine
+    from urllib.parse import quote_plus
+    password = quote_plus('!!@Ll752515')
+
+    engine = create_engine(f'mysql+pymysql://fred:{password}@fred1234.synology.me/fred')
+    ddf_total.to_sql(name='price_order_result', con=engine, index=False, if_exists = 'replace')
+    engine.dispose()
             
       
 def task3():     
@@ -308,8 +324,8 @@ def main() :
         print("            ﾉ>ノ ")
         print("      三   レﾚ")
 
-        print("2023_07_09")
-        print("주말에 시간내서 수정한 프로그램")
+
+        print("관리가힘든프로그램")
        
 
         # 사용자 선택 입력 받기      

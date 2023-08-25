@@ -112,8 +112,9 @@ def task2() :
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
     options.add_argument('--disable-dev-shm-usage')
-
-    driver = webdriver.Chrome(executable_path=ChromeDriverManager(version="114.0.5735.90").install(), options=options)
+       
+    driver = webdriver.Chrome(executable_path='C:\\chromedriver\\chromedriver.exe')
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})
     
             
             

@@ -19,6 +19,9 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from sqlalchemy import create_engine
 from urllib.parse import quote_plus
+import schedule
+from selenium.common.exceptions import UnexpectedAlertPresentException, NoAlertPresentException
+import time
 
 def naver(soup) :      
     try :      
@@ -100,20 +103,18 @@ def task2() :
 
     from sqlalchemy import create_engine
     from urllib.parse import quote_plus
-    password = quote_plus('!!@Ll752515')
-
-    engine = create_engine(f'mysql+pymysql://fred:{password}@fred1234.synology.me/fred')
-    df_input.to_sql(name='price_order', con=engine, index=False, if_exists = 'replace')
-    engine.dispose()
+    password = quote_plus('!!@Ll575212')
 
     from selenium import webdriver
-    from webdriver_manager.chrome import ChromeDriverManager
     options = webdriver.ChromeOptions()
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_argument('--no-sandbox')
     options.add_experimental_option('useAutomationExtension', False)
+    options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('--disable-dev-shm-usage')
-       
-    driver = webdriver.Chrome(executable_path='C:\\chromedriver\\chromedriver.exe')
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36")
+
+    driver = webdriver.Chrome(options=options) 
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": """ Object.defineProperty(navigator, 'webdriver', { get: () => undefined }) """})
     
             
@@ -221,9 +222,11 @@ def task2() :
     df_total = df_total[ df_total['플랫폼'] != '교보핫트랙스' ]
     df_total = df_total[ df_total['플랫폼'] != '프리쉽' ]
     ddf_total = df_total[df_total['가격차이'] >= 1].reset_index(drop=True)
-    try : 
-        for i, row in ddf_total.iterrows():
-            if row['판매처'] == "":
+
+    for i, row in ddf_total.iterrows():
+        if row['판매처'] == "":
+
+            try : 
                 driver.get(row['링크주소'])
                 time.sleep(10)       
                 html = driver.page_source       
@@ -262,19 +265,18 @@ def task2() :
                     seller = unknown(soup)  
         
                 ddf_total.loc[i,'판매처'] = seller 
-                
-                
-    except AttributeError:       
-        pass       
-        
-    except TypeError:       
-        pass       
             
-    except TimeoutException :       
-        pass       
-
-    except UnexpectedAlertPresentException: 
-        pass 
+            
+            except UnexpectedAlertPresentException:  # 알림창 예외 처리
+                print(f"Unexpected alert at row {i}. Moving to the next row.")
+                try:
+                    driver.switch_to.alert.accept()
+                except:
+                    print("Failed to close the alert. Skipping to next row.")
+                continue
+            except Exception as e:  # 모든 예외를 처리
+                print(f"An error occurred at row {i}: {e}. Moving to the next row.")
+                continue
 
             
     # '가격지도' 폴더 경로 생성
@@ -294,12 +296,8 @@ def task2() :
     now2 = datetime.datetime.now().strftime("%Y%m%d")
     ddf_total['날짜'] = now2
 
-    from sqlalchemy import create_engine
-    from urllib.parse import quote_plus
-    password = quote_plus('!!@Ll752515')
-
-    engine = create_engine(f'mysql+pymysql://fred:{password}@fred1234.synology.me/fred')
-    ddf_total.to_sql(name='price_order_result', con=engine, index=False, if_exists = 'replace')
+    engine = create_engine(f'mysql+pymysql://fred:{password}@fred12345.duckdns.org:3307/fred')
+    ddf_total.to_sql(name='price_order_result_test', con=engine, index=False, if_exists = 'replace')
     engine.dispose()
             
       
@@ -326,7 +324,7 @@ def main() :
         print("      三   レﾚ")
 
 
-        print("관리가힘든프로그램")
+        print("2023-10-06 일자 수정")
        
 
         # 사용자 선택 입력 받기      
